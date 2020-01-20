@@ -129,6 +129,6 @@ function setStatus(activity, status) {
   if (activity && activity.setStatus) {
     activity.setStatus(status);
   } else {
-    console.log('Algolia:', status);
+//     console.log('Algolia:', status);
   }
 }
