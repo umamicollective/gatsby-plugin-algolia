@@ -13,11 +13,11 @@ exports.onPostBuild = async function(
   { graphql },
   { appId, apiKey, queries, indexName: mainIndexName, chunkSize = 1000 }
 ) {
-//   const activity = report.activityTimer(`index to Algolia`);
-//   activity.start();
+  const activity = report.activityTimer(`index to Algolia`);
+  activity.start();
   const client = algoliasearch(appId, apiKey);
 
-//   setStatus(activity, `${queries.length} queries to index`);
+  setStatus(activity, `${queries.length} queries to index`);
 
   const jobs = queries.map(async function doQuery(
     { indexName = mainIndexName, query, transformer = identity, settings },
@@ -34,11 +34,11 @@ exports.onPostBuild = async function(
     const indexToUse = mainIndexExists ? tmpIndex : index;
 
     if (mainIndexExists) {
-//       setStatus(activity, `query ${i}: copying existing index`);
+      setStatus(activity, `query ${i}: copying existing index`);
       await scopedCopyIndex(client, index, tmpIndex);
     }
 
-//     setStatus(activity, `query ${i}: executing query`);
+    setStatus(activity, `query ${i}: executing query`);
     const result = await graphql(query);
     if (result.errors) {
       report.panic(`failed to index to Algolia`, result.errors);
@@ -46,7 +46,7 @@ exports.onPostBuild = async function(
     const objects = await transformer(result);
     const chunks = chunk(objects, chunkSize);
 
-//     setStatus(activity, `query ${i}: splitting in ${chunks.length} jobs`);
+    setStatus(activity, `query ${i}: splitting in ${chunks.length} jobs`);
 
     const chunkJobs = chunks.map(async function(chunked) {
       const { taskID } = await indexToUse.addObjects(chunked);
@@ -61,7 +61,7 @@ exports.onPostBuild = async function(
     }
 
     if (mainIndexExists) {
-//       setStatus(activity, `query ${i}: moving copied index to main index`);
+      setStatus(activity, `query ${i}: moving copied index to main index`);
       return moveIndex(client, tmpIndex, index);
     }
   });
@@ -71,7 +71,7 @@ exports.onPostBuild = async function(
   } catch (err) {
     report.panic(`failed to index to Algolia`, err);
   }
-//   activity.end();
+  activity.end();
 };
 
 /**
@@ -126,11 +126,7 @@ async function indexExists(index) {
  * @param {String} status status to report
  */
 function setStatus(activity, status) {
-  // LOGGING IS TOO DAMN HIGH
-  return
   if (activity && activity.setStatus) {
     activity.setStatus(status);
-  } else {
-//     console.log('Algolia:', status);
   }
 }
